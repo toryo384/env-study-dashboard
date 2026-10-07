@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>環境計量士 × 副業 Dashboard</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb;--accent:#2563eb;--soft:#eff6ff;--bad:#dc2626}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:980px;margin:auto;padding:18px}h1{font-size:24px;margin:0 0 4px}.sub,.small{color:var(--muted);font-size:13px}.sub{margin-bottom:18px}
+.tabs,.toolbar{display:flex;gap:8px;flex-wrap:wrap}.tabs{margin-bottom:16px}button,.btn,input,select,textarea{font:inherit}button,.btn{cursor:pointer;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px}button.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}.metric .label{font-size:13px;color:var(--muted)}.metric .value{font-size:26px;font-weight:700;margin-top:4px}.title{font-weight:700;font-size:18px}.item{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.bar{height:10px;border-radius:999px;background:#e5e7eb;overflow:hidden}.bar>div{height:100%;background:var(--accent)}
+.checkboxline{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.checkboxline input{width:auto;margin-top:3px}label{display:block;font-size:14px}input,select,textarea{width:100%;border:1px solid var(--border);background:#fff;border-radius:9px;padding:10px;margin-top:5px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none}.danger{color:var(--bad)}footer{margin-top:18px;color:var(--muted);font-size:12px}
+@media(max-width:700px){.grid3,.formgrid{grid-template-columns:1fr}.wrap{padding:12px}h1{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>環境計量士 × 副業 Dashboard</h1>
+<div class="sub">環境計量士（濃度）の学習と note 副業を一つで管理</div>
+<div class="tabs">
+<button class="tab active" data-tab="today">今日</button><button class="tab" data-tab="log">学習記録</button><button class="tab" data-tab="weak">弱点</button><button class="tab" data-tab="note">note</button><button class="tab" data-tab="settings">バックアップ</button>
+</div>
+<section id="today" class="panel">
+<div class="grid3">
+<div class="card metric"><div class="label">累計学習時間</div><div id="totalHours" class="value">0.0 h</div></div>
+<div class="card metric"><div class="label">総合正答率</div><div id="accuracy" class="value">—</div></div>
+<div class="card metric"><div class="label">未解決弱点</div><div id="weakCount" class="value">0</div></div>
+</div>
+<div class="card"><div class="small" id="todayDate"></div><div class="title" id="todayTitle">今日の学習</div><div class="small" id="todayTarget"></div><div id="todayTasks"></div><div class="bar"><div id="progressBar" style="width:0%"></div></div><div class="small" id="progressText" style="margin-top:7px">0% 完了</div></div>
+<div class="card"><div class="title">今日の副業</div><div id="sideTask" style="margin-top:8px">今日は note 作業なし</div><div class="small" style="margin-top:6px">試験までは週45分上限。noteのための追加調査はしない。</div></div>
+</section>
+<section id="log" class="panel hidden">
+<div class="card"><div class="title">学習記録を追加</div><div class="formgrid" style="margin-top:12px">
+<label>日付<input type="date" id="logDate"></label><label>科目<select id="subject"><option>環濃</option><option>環化</option><option>法規</option><option>計量管理</option></select></label>
+<label>テーマ<input id="theme"></label><label>学習時間(h)<input id="hours" type="number" min="0" max="12" step="0.25" value="2.5"></label><label>問題数<input id="questions" type="number" min="0" value="0"></label><label>正解数<input id="correct" type="number" min="0" value="0"></label></div>
+<button id="addLog" class="primary" style="margin-top:12px">記録する</button><div id="logMsg" class="small" style="margin-top:8px"></div></div><div id="logList"></div>
+</section>
+<section id="weak" class="panel hidden"><div class="card"><div class="title">弱点を追加</div><textarea id="weakText" rows="3" placeholder="例：希釈計算で体積比を逆にした"></textarea><button id="addWeak" class="primary" style="margin-top:10px">追加</button></div><div id="weakList"></div></section>
+<section id="note" class="panel hidden"><div class="card"><div class="title">note記事パイプライン</div><div class="small">勉強 → 記事化。新規調査は禁止。</div></div><div id="articleList"></div></section>
+<section id="settings" class="panel hidden"><div class="card"><div class="title">データのバックアップ</div><p class="small">データはこのブラウザ内に保存されます。PC変更やブラウザ初期化に備えてバックアップしてください。</p><div class="toolbar"><button id="exportBtn">バックアップを書き出す</button><label class="btn">バックアップを読み込む<input id="importFile" type="file" accept=".json,application/json" style="display:none"></label><button id="resetBtn" class="danger">全データ初期化</button></div></div></section>
+<footer>保存先：このブラウザの localStorage。インターネット接続なしでも使用できます。</footer>
+</div>
+<script>
+const KEY='env_meter_sidejob_dashboard_v1';
+const plan={
+'2026-10-08':{subject:'環濃',theme:'容量分析の基本・酸塩基滴定',hours:2.5,tasks:['徹底攻略：容量分析の基本を読む','酸塩基滴定を読む','コロナ社5か年の該当問題を解く','間違えた問題だけ復習']},
+'2026-10-09':{subject:'環濃',theme:'酸化還元滴定',hours:2.5,tasks:['徹底攻略：酸化還元滴定を読む','反応式と当量関係を確認','コロナ社5か年の該当問題','誤答だけ復習']},
+'2026-10-10':{subject:'環濃',theme:'キレート滴定・沈殿滴定',hours:4,tasks:['EDTA・キレート滴定','沈殿滴定','容量分析の5か年問題','今週の誤答復習']},
+'2026-10-11':{subject:'環濃',theme:'吸光光度法',hours:4,tasks:['Beer-Lambertの法則','検量線・ブランク','5か年過去問','10/8〜10/10の誤答復習']},
+'2026-10-12':{subject:'環濃',theme:'原子吸光分析',hours:2.5,tasks:['原子吸光の原理','フレーム・電気加熱','干渉・補正','該当過去問']},
+'2026-10-13':{subject:'環濃',theme:'ICP-OES・ICP-MS',hours:2.5,tasks:['ICPの原理','OESとMSの違い','干渉','該当過去問']}
+};
+const defaults=[{title:'環境計量士（濃度）に約2か月で挑戦します',status:'下書き'},{title:'ppm・mg/L・mol/Lを環境計量士向けに整理する',status:'ネタ'},{title:'酸塩基滴定を環境計量士向けに整理する',status:'ネタ'},{title:'吸光光度法と検量線を整理する',status:'ネタ'},{title:'原子吸光・ICP-OES・ICP-MSの違い',status:'ネタ'},{title:'GCとHPLCの違い',status:'ネタ'},{title:'環境計量士（濃度）受験記',status:'ネタ'}];
+let state=load();
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x)return x}catch(e){}return{logs:[],weak:[],articles:defaults,checks:{}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));renderAll()}
+function today(){const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),da=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${da}`}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function renderToday(){const d=today();document.getElementById('todayDate').textContent=d;const p=plan[d]||{subject:'計画',theme:'学習計画を確認',hours:'—',tasks:['学習計画に沿って進める','学習後に記録を残す']};document.getElementById('todayTitle').textContent=`${p.subject}：${p.theme}`;document.getElementById('todayTarget').textContent=`目標 ${p.hours} h`;const box=document.getElementById('todayTasks');box.innerHTML='';state.checks[d]=state.checks[d]||{};p.tasks.forEach((t,i)=>{const lab=document.createElement('label');lab.className='checkboxline';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!state.checks[d][i];cb.addEventListener('change',()=>{state.checks[d][i]=cb.checked;save()});const sp=document.createElement('span');sp.textContent=t;lab.append(cb,sp);box.appendChild(lab)});const done=p.tasks.filter((_,i)=>state.checks[d][i]).length,pct=Math.round(done/p.tasks.length*100);document.getElementById('progressBar').style.width=pct+'%';document.getElementById('progressText').textContent=pct+'% 完了';const note={'2026-10-10':'第1記事を仕上げる（45分以内）','2026-10-17':'ppm・mg/L・mol/L記事（45分以内）','2026-10-24':'酸塩基滴定記事（45分以内）','2026-10-31':'吸光光度法記事（45分以内）','2026-11-07':'原子吸光・ICP記事（45分以内）','2026-11-14':'GC・HPLC記事（45分以内）','2026-11-21':'1か月振り返り記事（45分以内）'};document.getElementById('sideTask').textContent=note[d]||'今日は note 作業なし'}
+function renderStats(){const h=state.logs.reduce((a,x)=>a+Number(x.hours||0),0),q=state.logs.reduce((a,x)=>a+Number(x.questions||0),0),c=state.logs.reduce((a,x)=>a+Number(x.correct||0),0);document.getElementById('totalHours').textContent=h.toFixed(1)+' h';document.getElementById('accuracy').textContent=q?Math.round(c/q*100)+'%':'—';document.getElementById('weakCount').textContent=state.weak.filter(x=>!x.done).length}
+function renderLogs(){const el=document.getElementById('logList');el.innerHTML='';[...state.logs].reverse().forEach((x,r)=>{const idx=state.logs.length-1-r,d=document.createElement('div');d.className='card item';const left=document.createElement('div');left.innerHTML=`<div class="title">${esc(x.subject)}｜${esc(x.theme)}</div><div class="small">${esc(x.date)} ・ ${x.hours}h ・ ${x.correct}/${x.questions}問正解</div>`;const b=document.createElement('button');b.textContent='削除';b.addEventListener('click',()=>{state.logs.splice(idx,1);save()});d.append(left,b);el.appendChild(d)});if(!state.logs.length)el.innerHTML='<div class="card small">まだ記録はありません。</div>'}
+function renderWeak(){const el=document.getElementById('weakList');el.innerHTML='';state.weak.forEach((x,i)=>{const d=document.createElement('div');d.className='card item';const lab=document.createElement('label');lab.className='checkboxline';lab.style.margin=0;const cb=document.createElement('input');cb.type='checkbox';cb.checked=x.done;cb.addEventListener('change',()=>{state.weak[i].done=cb.checked;save()});const sp=document.createElement('span');sp.textContent=x.text;if(x.done)sp.style.textDecoration='line-through';lab.append(cb,sp);const b=document.createElement('button');b.textContent='削除';b.addEventListener('click',()=>{state.weak.splice(i,1);save()});d.append(lab,b);el.appendChild(d)});if(!state.weak.length)el.innerHTML='<div class="card small">弱点はまだありません。</div>'}
+function renderArticles(){const el=document.getElementById('articleList');el.innerHTML='';const flow=['ネタ','下書き','レビュー','公開'];state.articles.forEach((a,i)=>{const d=document.createElement('div');d.className='card item';const left=document.createElement('div');left.innerHTML=`<div class="title">${esc(a.title)}</div><div class="small">状態：${esc(a.status)}</div>`;const b=document.createElement('button');b.textContent='次へ';b.addEventListener('click',()=>{let n=flow.indexOf(a.status);state.articles[i].status=flow[Math.min(flow.length-1,n+1)];save()});d.append(left,b);el.appendChild(d)})}
+function renderAll(){renderToday();renderStats();renderLogs();renderWeak();renderArticles()}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));document.getElementById(b.dataset.tab).classList.remove('hidden')}));
+document.getElementById('logDate').value=today();document.getElementById('theme').value=(plan[today()]||{}).theme||'';
+document.getElementById('addLog').addEventListener('click',()=>{const q=Math.max(0,parseInt(document.getElementById('questions').value||0)),c=Math.max(0,parseInt(document.getElementById('correct').value||0));if(c>q){document.getElementById('logMsg').textContent='正解数は問題数以下にしてください。';return}state.logs.push({date:document.getElementById('logDate').value||today(),subject:document.getElementById('subject').value,theme:document.getElementById('theme').value.trim()||'未入力',hours:Math.max(0,Number(document.getElementById('hours').value||0)),questions:q,correct:c});document.getElementById('logMsg').textContent='記録しました。';save()});
+document.getElementById('addWeak').addEventListener('click',()=>{const t=document.getElementById('weakText').value.trim();if(!t)return;state.weak.push({text:t,done:false});document.getElementById('weakText').value='';save()});
+document.getElementById('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='env_meter_dashboard_backup.json';a.click();URL.revokeObjectURL(a.href)});
+document.getElementById('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{state=JSON.parse(await f.text());save();alert('バックアップを読み込みました。')}catch(err){alert('読み込みに失敗しました。')}e.target.value=''});
+document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('学習記録・弱点・記事状態をすべて初期化しますか？')){localStorage.removeItem(KEY);state=load();save()}});
+renderAll();
+</script>
+</body>
+</html>
