@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>環境計量士 × 副業 Dashboard</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--border:#e4e8f0;--accent:#2563eb;--soft:#eff6ff;--green:#15803d;--greenSoft:#f0fdf4;--orange:#c2410c;--orangeSoft:#fff7ed;--red:#b91c1c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}.wrap{max-width:1100px;margin:auto;padding:18px}h1{margin:0;font-size:24px}.sub,.small{font-size:13px;color:var(--muted)}.sub{margin:5px 0 18px}
+.tabs,.toolbar{display:flex;gap:8px;flex-wrap:wrap}button,.btn,input,select,textarea{font:inherit}button,.btn{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}button.active{border-color:var(--accent);background:var(--soft);color:var(--accent);font-weight:700}.primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}.metric .label{font-size:13px;color:var(--muted)}.metric .value{font-size:25px;font-weight:750;margin-top:4px}.title{font-size:18px;font-weight:750}.book{margin:10px 0;padding:12px;background:var(--soft);border-radius:10px}.book strong{display:block;margin-bottom:4px}.newbadge,.donebadge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:700}.newbadge{background:var(--orangeSoft);color:var(--orange);border:1px solid #fdba74}.donebadge{background:var(--greenSoft);color:var(--green);border:1px solid #86efac}
+.bar{height:10px;background:#e7eaf0;border-radius:999px;overflow:hidden}.bar>div{height:100%;background:var(--accent)}.checkboxline{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.checkboxline input{width:auto;margin-top:3px}label{font-size:14px}input,select,textarea{width:100%;border:1px solid var(--border);border-radius:9px;background:#fff;padding:10px;margin-top:5px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none}.item{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.danger{color:var(--red)}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f8fafc;z-index:1}.tablewrap{overflow:auto;max-height:680px;border:1px solid var(--border);border-radius:12px}.todayrow{background:#f8fbff}.pastDone{background:#f5fff7}.nowrap{white-space:nowrap}
+@media(max-width:760px){.grid4,.formgrid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid4,.formgrid{grid-template-columns:1fr}h1{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>環境計量士 × 副業 Dashboard</h1>
+<div class="sub">v3｜『濃度・共通 徹底攻略』の章番号・ページに対応｜2026/10/12開始 → 12/13試験</div>
+
+<div class="tabs">
+<button class="tab active" data-tab="today">今日</button>
+<button class="tab" data-tab="plan">計画</button>
+<button class="tab" data-tab="log">学習記録</button>
+<button class="tab" data-tab="weak">弱点</button>
+<button class="tab" data-tab="note">note</button>
+<button class="tab" data-tab="settings">バックアップ</button>
+</div>
+
+<section id="today" class="panel">
+<div class="grid4">
+<div class="card metric"><div class="label">試験まで</div><div id="daysLeft" class="value">—</div></div>
+<div class="card metric"><div class="label">累計学習</div><div id="totalHours" class="value">0.0 h</div></div>
+<div class="card metric"><div class="label">正答率</div><div id="accuracy" class="value">—</div></div>
+<div class="card metric"><div class="label">未解決弱点</div><div id="weakCount" class="value">0</div></div>
+</div>
+
+<div class="card">
+<div class="small">昨日完了</div>
+<div class="title">濃度・mol・標準液・希釈・ppm <span class="donebadge">完了済み</span></div>
+<div class="small" style="margin-top:7px">今日は最初からやり直しません。誤答だけ5〜10分確認します。</div>
+</div>
+
+<div class="card">
+<div class="small" id="todayDate"></div>
+<div class="title"><span id="todayTitle"></span> <span id="todayBadge" class="newbadge">新規</span></div>
+<div class="book"><strong id="bookSection"></strong><span id="bookPages"></span></div>
+<div id="todayTasks"></div>
+<div class="bar"><div id="progressBar" style="width:0%"></div></div>
+<div class="small" id="progressText" style="margin-top:7px"></div>
+</div>
+
+<div class="card">
+<div class="title">今日の副業</div>
+<div id="sideTask" style="margin-top:8px"></div>
+<div class="small" style="margin-top:6px">試験前は週45分まで。追加調査はしない。</div>
+</div>
+</section>
+
+<section id="plan" class="panel hidden">
+<div class="card"><div class="title">学習計画</div><div class="small">本の章番号・ページまで明示。新規学習と復習を分離。</div></div>
+<div class="tablewrap"><table><thead><tr><th>日付</th><th>本の範囲</th><th>ページ</th><th>テーマ</th><th>時間</th></tr></thead><tbody id="planBody"></tbody></table></div>
+</section>
+
+<section id="log" class="panel hidden">
+<div class="card">
+<div class="title">学習記録</div>
+<div class="formgrid" style="margin-top:12px">
+<label>日付<input type="date" id="logDate"></label>
+<label>科目<select id="subject"><option>環濃</option><option>環化</option><option>法規</option><option>計量管理</option><option>模試</option></select></label>
+<label>テーマ<input id="theme"></label>
+<label>時間(h)<input id="hours" type="number" min="0" max="12" step=".25" value="2.5"></label>
+<label>問題数<input id="questions" type="number" min="0" value="0"></label>
+<label>正解数<input id="correct" type="number" min="0" value="0"></label>
+</div>
+<button id="addLog" class="primary" style="margin-top:12px">記録する</button>
+<div id="logMsg" class="small" style="margin-top:8px"></div>
+</div>
+<div id="logList"></div>
+</section>
+
+<section id="weak" class="panel hidden">
+<div class="card"><div class="title">弱点</div><textarea id="weakText" rows="3" placeholder="例：酸塩基滴定で当量関係を取り違えた"></textarea><button id="addWeak" class="primary" style="margin-top:10px">追加</button></div>
+<div id="weakList"></div>
+</section>
+
+<section id="note" class="panel hidden">
+<div class="card"><div class="title">note記事</div><div class="small">学習した内容だけを記事化。</div></div>
+<div id="articleList"></div>
+</section>
+
+<section id="settings" class="panel hidden">
+<div class="card"><div class="title">バックアップ</div><p class="small">同じlocalStorageキーを使うため、HTMLを置き換えても既存記録は原則残ります。</p><div class="toolbar"><button id="exportBtn">書き出す</button><label class="btn">読み込む<input id="importFile" type="file" accept=".json" style="display:none"></label><button id="resetBtn" class="danger">全初期化</button></div></div>
+</section>
+</div>
+
+<script>
+(() => {
+const KEY = 'env_meter_sidejob_dashboard_v1';
+const EXAM = '2026-12-13';
+const plan = [{"date": "2026-10-12", "section": "基礎計算", "pages": "—", "theme": "濃度・mol・標準液・希釈・ppm", "hours": 2.5, "doneByUser": true, "tasks": ["完了済み：濃度・mol・標準液・希釈・ppm", "今後は誤答だけ5〜10分復習"]}, {"date": "2026-10-13", "section": "第3章 3-2 化学分析の実際", "pages": "p.102〜135", "theme": "容量分析の基本・酸塩基滴定", "hours": 2.5, "doneByUser": false, "tasks": ["新規：3-2「化学分析の実際」を読む", "容量分析の考え方と当量関係を整理", "酸塩基滴定の計算・終点・指示薬を重点確認", "コロナ社5か年の該当問題を解く", "昨日の濃度計算は誤答だけ5〜10分復習"]}, {"date": "2026-10-14", "section": "第3章 3-2 化学分析の実際", "pages": "p.102〜135", "theme": "酸化還元滴定・キレート滴定・沈殿滴定", "hours": 2.5, "doneByUser": false, "tasks": ["酸化還元滴定を読む", "EDTA・キレート滴定を読む", "沈殿滴定を読む", "コロナ社5か年の該当問題", "誤答を弱点登録"]}, {"date": "2026-10-15", "section": "第3章 3-3 電気化学分析法", "pages": "p.136〜138", "theme": "pH計・電極・電気化学分析", "hours": 2.5, "doneByUser": false, "tasks": ["3-3を読む", "pH電極・参照電極の役割を整理", "校正と測定原理を確認", "該当過去問", "誤答復習"]}, {"date": "2026-10-16", "section": "第3章 3-4 吸光光度法・原子吸光分析法", "pages": "p.139〜145", "theme": "吸光光度法・原子吸光", "hours": 2.5, "doneByUser": false, "tasks": ["Beer-Lambertの法則", "検量線・ブランク", "原子吸光の原理・原子化", "両者の違いを比較", "該当過去問"]}, {"date": "2026-10-17", "section": "第3章 3-5 ICP発光分光分析法・ICP質量分析法", "pages": "p.146〜152", "theme": "ICP-OES・ICP-MS", "hours": 4.0, "doneByUser": false, "tasks": ["ICPの原理", "装置の概要", "ICP-OESとICP-MSの違い", "特徴・適用・干渉", "5か年問題＋復習"]}, {"date": "2026-10-18", "section": "第3章 3-6 蛍光・化学発光・イオンクロマト分析法等", "pages": "p.153〜158", "theme": "蛍光・化学発光・イオンクロマト", "hours": 4.0, "doneByUser": false, "tasks": ["3-6を読む", "原理・用途・特徴を整理", "イオンクロマトの分離原理", "該当問題", "10/13〜10/17の誤答復習"]}, {"date": "2026-10-19", "section": "第3章 3-7 ガスクロマトグラフ・GC-MS", "pages": "p.159〜170", "theme": "GC・GC-MS", "hours": 2.5, "doneByUser": false, "tasks": ["GC法の原理", "GC装置の概要", "カラム・キャリアガス・検出器", "GC-MSの原理・構成・特徴", "該当過去問"]}, {"date": "2026-10-20", "section": "第3章 3-8 高速液体クロマトグラフ・LC-MS", "pages": "p.171〜175", "theme": "HPLC・LC-MS", "hours": 2.5, "doneByUser": false, "tasks": ["HPLCの原理", "移動相・カラム・検出器", "LC-MSの特徴", "GCとの違いを比較", "該当過去問"]}, {"date": "2026-10-21", "section": "第3章 3-9〜3-10", "pages": "p.176〜181", "theme": "炭化水素自動分析計・酸素分析計", "hours": 2.5, "doneByUser": false, "tasks": ["FIDモニタ・炭化水素自動分析計", "磁気式酸素分析計", "ジルコニア式酸素分析計", "原理と用途を比較", "該当問題"]}, {"date": "2026-10-22", "section": "第3章 3-11〜3-15", "pages": "p.182〜190", "theme": "X線・粒子状物質・赤外/紫外・その他分析法・性能試験", "hours": 2.5, "doneByUser": false, "tasks": ["3-11〜3-15を通読", "各分析法の原理と対象を1行で整理", "分析装置の性能試験を確認", "過去問で頻出箇所を絞る", "誤答復習"]}, {"date": "2026-10-23", "section": "第3章 3-16", "pages": "p.191〜192", "theme": "排ガス・排水・廃棄物のサンプリング", "hours": 2.5, "doneByUser": false, "tasks": ["サンプリングの目的", "採取位置・代表性・保存", "排ガス・排水・廃棄物の違い", "該当問題", "試験基準で整理"]}, {"date": "2026-10-24", "section": "第3章 3-17〜3-18", "pages": "p.193〜209", "theme": "JIS・公定分析法・ダイオキシン類＋第3章復習", "hours": 4.0, "doneByUser": false, "tasks": ["JIS・公定分析法の位置づけ", "ダイオキシン類試験方法", "第3章の5か年△×を再演習", "分析法比較表を作る", "弱点更新"]}, {"date": "2026-10-25", "section": "第2章 2-1〜2-2", "pages": "p.20〜36", "theme": "元素・原子・分子／化学結合・分子構造", "hours": 4.0, "doneByUser": false, "tasks": ["元素・原子・分子", "周期表・元素の性質", "化学結合各種", "該当過去問", "誤答復習"]}, {"date": "2026-10-26", "section": "第2章 2-3", "pages": "p.37〜48", "theme": "物質の状態：気体・溶液・固体", "hours": 2.5, "doneByUser": false, "tasks": ["物質の三態", "気体", "溶液", "固体", "計算問題＋過去問"]}, {"date": "2026-10-27", "section": "第2章 2-4", "pages": "p.49〜56", "theme": "化学平衡", "hours": 2.5, "doneByUser": false, "tasks": ["化学平衡", "平衡移動の法則", "不均一系平衡", "電離平衡", "計算問題"]}, {"date": "2026-10-28", "section": "第2章 2-5", "pages": "p.57〜64", "theme": "化学変化とエネルギー", "hours": 2.5, "doneByUser": false, "tasks": ["熱力学第一法則", "熱化学", "熱力学第二法則", "符号と式を整理", "該当問題"]}, {"date": "2026-10-29", "section": "第2章 2-6", "pages": "p.65〜71", "theme": "酸と塩基", "hours": 2.5, "doneByUser": false, "tasks": ["酸・塩基の定義", "酸・塩基の電離", "pH・Ka/Kb", "該当問題", "誤答復習"]}, {"date": "2026-10-30", "section": "第2章 2-7", "pages": "p.72〜81", "theme": "酸化還元・電解・電池", "hours": 2.5, "doneByUser": false, "tasks": ["酸化還元の概念", "電池と電極電位", "電気分解", "計算問題", "誤答復習"]}, {"date": "2026-10-31", "section": "第2章 2-8〜2-9", "pages": "p.82〜99", "theme": "化学反応速度・有機化学", "hours": 4.0, "doneByUser": false, "tasks": ["反応速度と速度式", "反応次数", "温度依存性", "有機化学の基本", "該当過去問"]}, {"date": "2026-11-01", "section": "第2章 総復習", "pages": "p.20〜99", "theme": "化学基礎の1周目総復習", "hours": 4.0, "doneByUser": false, "tasks": ["第2章の△×のみ解き直し", "計算問題を再演習", "暗記項目を絞る", "弱点更新"]}, {"date": "2026-11-02", "section": "第1章 1-1〜1-3", "pages": "p.2〜19", "theme": "環境基本法・水質汚濁防止法・大気汚染防止法", "hours": 2.5, "doneByUser": false, "tasks": ["各法律の目的・対象を整理", "環境基本法", "水質汚濁防止法", "大気汚染防止法", "過去問"]}, {"date": "2026-11-03", "section": "第4章 導入・4-1", "pages": "p.210〜215", "theme": "計量法の概要・総則", "hours": 2.5, "doneByUser": false, "tasks": ["出題傾向を確認", "計量法の概要", "目的・定義", "過去問"]}, {"date": "2026-11-04", "section": "第4章 4-2", "pages": "p.216〜221", "theme": "計量単位", "hours": 2.5, "doneByUser": false, "tasks": ["SI単位", "法定計量単位", "単位記号", "過去問"]}, {"date": "2026-11-05", "section": "第4章 4-3", "pages": "p.222〜233", "theme": "適正な計量の実施", "hours": 2.5, "doneByUser": false, "tasks": ["法第10〜39条の要点", "禁止・義務を整理", "数字・期限をマーク", "過去問"]}, {"date": "2026-11-06", "section": "第4章 4-4", "pages": "p.234〜238", "theme": "正確な特定計量器等の供給", "hours": 2.5, "doneByUser": false, "tasks": ["特定計量器", "供給に関する規定", "対象を整理", "過去問"]}, {"date": "2026-11-07", "section": "第4章 4-5", "pages": "p.239〜247", "theme": "検定等", "hours": 4.0, "doneByUser": false, "tasks": ["検定", "型式承認等の関係", "有効期間・対象", "5か年問題", "誤答復習"]}, {"date": "2026-11-08", "section": "第4章 4-6", "pages": "p.248〜255", "theme": "計量証明の事業", "hours": 4.0, "doneByUser": false, "tasks": ["計量証明事業", "登録要件", "環境計量証明との関係", "過去問", "誤答復習"]}, {"date": "2026-11-09", "section": "第4章 4-7", "pages": "p.256〜260", "theme": "適正な計量管理", "hours": 2.5, "doneByUser": false, "tasks": ["法第122〜133条", "計量管理", "環境計量士関連", "過去問"]}, {"date": "2026-11-10", "section": "第4章 4-8", "pages": "p.261〜263", "theme": "計量器の校正等", "hours": 2.5, "doneByUser": false, "tasks": ["校正", "トレーサビリティとの関係", "JCSSとの区別", "過去問"]}, {"date": "2026-11-11", "section": "第4章 4-9", "pages": "p.264〜269", "theme": "雑則・罰則＋第4章総復習", "hours": 2.5, "doneByUser": false, "tasks": ["雑則", "罰則", "第4章の数字・期限を整理", "5か年△×"]}, {"date": "2026-11-12", "section": "第5章 5-1〜5-2", "pages": "p.270〜282", "theme": "計量管理・測定における量と単位", "hours": 2.5, "doneByUser": false, "tasks": ["計量管理", "量と単位", "定義を整理", "過去問"]}, {"date": "2026-11-13", "section": "第5章 5-3〜5-4", "pages": "p.283〜296", "theme": "トレーサビリティ・標準／測定誤差・不確かさ", "hours": 2.5, "doneByUser": false, "tasks": ["トレーサビリティと標準", "測定誤差", "不確かさ", "計算・概念問題"]}, {"date": "2026-11-14", "section": "第5章 5-5〜5-6", "pages": "p.297〜310", "theme": "統計の基礎・推定検定／回帰・相関", "hours": 4.0, "doneByUser": false, "tasks": ["平均・分散・標準偏差", "推定・検定", "回帰分析", "相関分析", "計算問題"]}, {"date": "2026-11-15", "section": "第5章 5-7〜5-9", "pages": "p.311〜326", "theme": "校正・SN比・管理図", "hours": 4.0, "doneByUser": false, "tasks": ["校正", "SN比", "管理図", "過去問", "誤答復習"]}, {"date": "2026-11-16", "section": "第5章 5-10〜5-14", "pages": "p.327〜374", "theme": "サンプリング・信頼性・実験計画・自動制御・工程管理", "hours": 2.5, "doneByUser": false, "tasks": ["5-10〜5-14を通読", "頻出部分を過去問で絞る", "第5章△×再演習", "弱点更新"]}, {"date": "2026-11-17", "section": "第3章 2周目①", "pages": "p.100〜138", "theme": "化学分析・容量分析・pH", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-18", "section": "第3章 2周目②", "pages": "p.139〜158", "theme": "吸光・原子吸光・ICP・イオンクロマト", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-19", "section": "第3章 2周目③", "pages": "p.159〜175", "theme": "GC・GC-MS・HPLC・LC-MS", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-20", "section": "第3章 2周目④", "pages": "p.176〜190", "theme": "自動分析計・その他分析法・性能試験", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-21", "section": "第3章 2周目⑤", "pages": "p.191〜209", "theme": "サンプリング・JIS・公定法・ダイオキシン", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-22", "section": "第2章 2周目", "pages": "p.20〜99", "theme": "化学基礎の弱点だけ", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-23", "section": "第4章 2周目", "pages": "p.210〜269", "theme": "計量法の弱点だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-24", "section": "第5章 2周目", "pages": "p.270〜374", "theme": "計量管理の弱点だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-25", "section": "第1章＋第4章", "pages": "p.2〜19 / p.210〜269", "theme": "環境法＋計量法の横断復習", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-26", "section": "時間演習", "pages": "—", "theme": "環濃 25問タイムアタック", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-27", "section": "時間演習", "pages": "—", "theme": "環化 25問タイムアタック", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-28", "section": "時間演習", "pages": "—", "theme": "法規 25問タイムアタック", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-29", "section": "時間演習", "pages": "—", "theme": "計量管理 25問タイムアタック", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-11-30", "section": "総復習", "pages": "—", "theme": "11月の誤答総復習", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-01", "section": "本番演習", "pages": "—", "theme": "環濃 25問", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-02", "section": "本番演習", "pages": "—", "theme": "環化 25問", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-03", "section": "本番演習", "pages": "—", "theme": "法規 25問", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-04", "section": "本番演習", "pages": "—", "theme": "計量管理 25問", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-05", "section": "模試", "pages": "—", "theme": "専門50問（環濃＋環化）", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-06", "section": "模試", "pages": "—", "theme": "共通50問（法規＋計量管理）", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-07", "section": "模試", "pages": "—", "theme": "100問通し演習", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-08", "section": "仕上げ", "pages": "—", "theme": "計量管理の計算だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-09", "section": "仕上げ", "pages": "—", "theme": "環濃の計算・分析法比較だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-10", "section": "仕上げ", "pages": "—", "theme": "法規の数字・期限だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-11", "section": "最終弱点", "pages": "—", "theme": "2回以上間違えた問題だけ", "hours": 2.5, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}, {"date": "2026-12-12", "section": "前日", "pages": "—", "theme": "公式・法律・分析法を軽く確認", "hours": 4.0, "doneByUser": false, "tasks": ["問題を先に解く", "間違えた箇所だけ『徹底攻略』に戻る", "誤答理由を確認", "解き直す"]}];
+const noteSchedule = {"2026-10-18": "第1記事：勉強開始1週間の記録（45分以内）", "2026-10-25": "第2記事：濃度・mol・希釈・ppm整理（45分以内）", "2026-11-01": "第3記事：分析法で混同しやすい点（45分以内）", "2026-11-08": "第4記事：化学基礎でつまずいた点（45分以内）", "2026-11-15": "第5記事：計量法・計量管理で覚える点（45分以内）", "2026-11-21": "第6記事：ここまでの弱点まとめ（45分以内）"};
+const articleDefaults = [
+  {title:'環境計量士（濃度）に約2か月で挑戦します',status:'下書き'},
+  {title:'濃度・mol・標準液・希釈・ppmを整理する',status:'ネタ'},
+  {title:'分析法で混同しやすいところ',status:'ネタ'},
+  {title:'化学基礎でつまずいたところ',status:'ネタ'},
+  {title:'計量法・計量管理で覚えるところ',status:'ネタ'},
+  {title:'受験記',status:'ネタ'}
+];
+
+const $ = (id) => document.getElementById(id);
+const els = {
+  daysLeft:$('daysLeft'), totalHours:$('totalHours'), accuracy:$('accuracy'), weakCount:$('weakCount'),
+  todayDate:$('todayDate'), todayTitle:$('todayTitle'), todayBadge:$('todayBadge'),
+  bookSection:$('bookSection'), bookPages:$('bookPages'), todayTasks:$('todayTasks'),
+  progressBar:$('progressBar'), progressText:$('progressText'), sideTask:$('sideTask'),
+  planBody:$('planBody'), logDate:$('logDate'), subject:$('subject'), theme:$('theme'),
+  hours:$('hours'), questions:$('questions'), correct:$('correct'), addLog:$('addLog'),
+  logMsg:$('logMsg'), logList:$('logList'), weakText:$('weakText'), addWeak:$('addWeak'),
+  weakList:$('weakList'), articleList:$('articleList'), exportBtn:$('exportBtn'),
+  importFile:$('importFile'), resetBtn:$('resetBtn')
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const x = JSON.parse(raw);
+      return {
+        logs:Array.isArray(x.logs)?x.logs:[],
+        weak:Array.isArray(x.weak)?x.weak:[],
+        checks:x.checks && typeof x.checks==='object'?x.checks:{},
+        articles:Array.isArray(x.articles)&&x.articles.length?x.articles:articleDefaults
+      };
+    }
+  } catch (_) {}
+  return {logs:[], weak:[], checks:{}, articles:articleDefaults};
+}
+let state = loadState();
+
+function saveState() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+  renderAll();
+}
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function asDate(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y,m-1,d);
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+}
+function getPlan(date) {
+  return plan.find(x => x.date === date);
+}
+function renderToday() {
+  const d = todayStr();
+  const p = getPlan(d);
+  const diff = Math.ceil((asDate(EXAM)-asDate(d))/86400000);
+  els.daysLeft.textContent = diff >= 0 ? diff+'日' : '終了';
+  els.todayDate.textContent = d;
+
+  els.todayTasks.innerHTML = '';
+  if (!p) {
+    els.todayTitle.textContent = d === EXAM ? '試験本番' : '計画なし';
+    els.todayBadge.style.display = 'none';
+    els.bookSection.textContent = '';
+    els.bookPages.textContent = '';
+    els.progressBar.style.width = '0%';
+    els.progressText.textContent = '';
+  } else {
+    els.todayTitle.textContent = p.theme;
+    els.todayBadge.style.display = p.doneByUser ? 'none' : 'inline-block';
+    els.bookSection.textContent = p.section;
+    els.bookPages.textContent = p.pages + ' ｜ 目標 ' + p.hours + 'h';
+
+    state.checks[d] = state.checks[d] || {};
+    p.tasks.forEach((task, i) => {
+      const label = document.createElement('label');
+      label.className = 'checkboxline';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!state.checks[d][i];
+      cb.addEventListener('change', () => {
+        state.checks[d][i] = cb.checked;
+        saveState();
+      });
+      const span = document.createElement('span');
+      span.textContent = task;
+      label.append(cb, span);
+      els.todayTasks.appendChild(label);
+    });
+    const done = p.tasks.filter((_,i)=>state.checks[d][i]).length;
+    const pct = p.tasks.length ? Math.round(done/p.tasks.length*100) : 0;
+    els.progressBar.style.width = pct+'%';
+    els.progressText.textContent = pct+'% 完了';
+  }
+
+  els.sideTask.textContent = noteSchedule[d] || ((d>='2026-11-22' && d<EXAM) ? 'noteは休止。試験勉強を優先。' : '今日はnote作業なし');
+}
+function renderStats() {
+  const h = state.logs.reduce((a,x)=>a+Number(x.hours||0),0);
+  const q = state.logs.reduce((a,x)=>a+Number(x.questions||0),0);
+  const c = state.logs.reduce((a,x)=>a+Number(x.correct||0),0);
+  els.totalHours.textContent = h.toFixed(1)+' h';
+  els.accuracy.textContent = q ? Math.round(c/q*100)+'%' : '—';
+  els.weakCount.textContent = state.weak.filter(x=>!x.done).length;
+}
+function renderPlan() {
+  const d = todayStr();
+  els.planBody.innerHTML = '';
+  plan.forEach(x => {
+    const tr = document.createElement('tr');
+    if (x.doneByUser) tr.className = 'pastDone';
+    else if (x.date === d) tr.className = 'todayrow';
+    tr.innerHTML = `<td class="nowrap">${esc(x.date)}</td><td>${esc(x.section)}</td><td class="nowrap">${esc(x.pages)}</td><td>${esc(x.theme)}${x.doneByUser?' <span class="donebadge">完了済み</span>':''}</td><td>${x.hours}h</td>`;
+    els.planBody.appendChild(tr);
+  });
+}
+function renderLogs() {
+  els.logList.innerHTML = '';
+  [...state.logs].reverse().forEach((x,r) => {
+    const idx = state.logs.length-1-r;
+    const card = document.createElement('div');
+    card.className = 'card item';
+    const left = document.createElement('div');
+    left.innerHTML = `<div class="title">${esc(x.subject)}｜${esc(x.theme)}</div><div class="small">${esc(x.date)} ・ ${x.hours}h ・ ${x.correct}/${x.questions}問</div>`;
+    const del = document.createElement('button');
+    del.textContent = '削除';
+    del.addEventListener('click', () => { state.logs.splice(idx,1); saveState(); });
+    card.append(left,del);
+    els.logList.appendChild(card);
+  });
+  if (!state.logs.length) els.logList.innerHTML = '<div class="card small">まだ記録はありません。</div>';
+}
+function renderWeak() {
+  els.weakList.innerHTML = '';
+  state.weak.forEach((x,i) => {
+    const card = document.createElement('div');
+    card.className = 'card item';
+    const label = document.createElement('label');
+    label.className = 'checkboxline';
+    label.style.margin = '0';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !!x.done;
+    cb.addEventListener('change',()=>{state.weak[i].done=cb.checked;saveState();});
+    const span = document.createElement('span');
+    span.textContent = x.text;
+    if (x.done) span.style.textDecoration='line-through';
+    label.append(cb,span);
+    const del = document.createElement('button');
+    del.textContent='削除';
+    del.addEventListener('click',()=>{state.weak.splice(i,1);saveState();});
+    card.append(label,del);
+    els.weakList.appendChild(card);
+  });
+  if (!state.weak.length) els.weakList.innerHTML = '<div class="card small">弱点はまだありません。</div>';
+}
+function renderArticles() {
+  els.articleList.innerHTML = '';
+  const flow=['ネタ','下書き','レビュー','公開'];
+  state.articles.forEach((a,i) => {
+    const card=document.createElement('div');
+    card.className='card item';
+    const left=document.createElement('div');
+    left.innerHTML=`<div class="title">${esc(a.title)}</div><div class="small">状態：${esc(a.status)}</div>`;
+    const next=document.createElement('button');
+    next.textContent='次へ';
+    next.addEventListener('click',()=>{
+      const n=flow.indexOf(a.status);
+      state.articles[i].status=flow[Math.min(flow.length-1,n+1)];
+      saveState();
+    });
+    card.append(left,next);
+    els.articleList.appendChild(card);
+  });
+}
+function renderAll() {
+  renderToday(); renderStats(); renderPlan(); renderLogs(); renderWeak(); renderArticles();
+}
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(x=>x.classList.add('hidden'));
+    $(btn.dataset.tab).classList.remove('hidden');
+  });
+});
+
+els.logDate.value = todayStr();
+const current = getPlan(todayStr());
+if (current) {
+  els.theme.value = current.theme;
+  els.hours.value = current.hours;
+}
+
+els.addLog.addEventListener('click', () => {
+  const q=Math.max(0,parseInt(els.questions.value||0,10));
+  const c=Math.max(0,parseInt(els.correct.value||0,10));
+  if (c>q) { els.logMsg.textContent='正解数は問題数以下にしてください。'; return; }
+  state.logs.push({
+    date:els.logDate.value||todayStr(),
+    subject:els.subject.value,
+    theme:els.theme.value.trim()||'未入力',
+    hours:Number(els.hours.value||0),
+    questions:q,
+    correct:c
+  });
+  els.logMsg.textContent='記録しました。';
+  saveState();
+});
+els.addWeak.addEventListener('click', () => {
+  const t=els.weakText.value.trim();
+  if (!t) return;
+  state.weak.push({text:t,done:false});
+  els.weakText.value='';
+  saveState();
+});
+els.exportBtn.addEventListener('click', () => {
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='env_meter_dashboard_backup.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+els.importFile.addEventListener('change', async ev => {
+  const f=ev.target.files[0];
+  if (!f) return;
+  try {
+    state=JSON.parse(await f.text());
+    saveState();
+    alert('読み込みました');
+  } catch (_) {
+    alert('読み込みに失敗しました');
+  }
+});
+els.resetBtn.addEventListener('click', () => {
+  if (confirm('全データを初期化しますか？')) {
+    localStorage.removeItem(KEY);
+    state=loadState();
+    saveState();
+  }
+});
+
+renderAll();
+})();
+</script>
+</body>
+</html>
