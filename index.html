@@ -12,6 +12,11 @@
 .bar{height:10px;background:#e7eaf0;border-radius:999px;overflow:hidden}.bar>div{height:100%;background:var(--accent)}.checkboxline{display:flex;gap:10px;align-items:flex-start;margin:10px 0}.checkboxline input{width:auto;margin-top:3px}label{font-size:14px}input,select,textarea{width:100%;border:1px solid var(--border);border-radius:9px;background:#fff;padding:10px;margin-top:5px}
 .formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none}.item{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.danger{color:var(--red)}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}th{position:sticky;top:0;background:#f8fafc;z-index:1}.tablewrap{overflow:auto;max-height:680px;border:1px solid var(--border);border-radius:12px}.todayrow{background:#f8fbff}.pastDone{background:#f5fff7}.nowrap{white-space:nowrap}
 @media(max-width:760px){.grid4,.formgrid{grid-template-columns:1fr 1fr}}@media(max-width:520px){.grid4,.formgrid{grid-template-columns:1fr}h1{font-size:21px}}
+#today > .card:last-child,
+button[data-tab="note"],
+#note {
+  display: none !important;
+}
 </style>
 </head>
 <body>
